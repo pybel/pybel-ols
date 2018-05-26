@@ -1,7 +1,7 @@
 PyBEL-OLS
 =========
 A PyBEL [1]_ extension for building BEL resources with the EBI [2]_ Ontology
-Lookup Service. If you use PyBEL in your work, please cite [1]_.
+Lookup Service.
 
 Installation
 ------------
