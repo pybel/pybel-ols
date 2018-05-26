@@ -29,6 +29,7 @@ Clone the repository from `GitHub <https://github.com/pybel/pybel-ols>`_ and ins
    $ git clone https://github.com/pybel/pybel-ols.git
    $ cd bio2bel
    $ python3 -m pip install -e .
+
 """
 
 from .ols_utils import (
