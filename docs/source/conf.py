@@ -150,6 +150,7 @@ texinfo_documents = [
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'pybel': ('https://pybel.readthedocs.io/en/latest/', None),
+    'pybel-artifactory': ('https://pybel-artifactory.readthedocs.io/en/latest/', None),
     'pandas': ('https://pandas-docs.github.io/pandas-docs-travis/', None)
 }
 
