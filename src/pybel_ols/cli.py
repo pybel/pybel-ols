@@ -1,28 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Command line interface for PyBEL-OLS.
-
-Building Resources via OLS
---------------------------
-Namespaces, annotations, and hierarchies can be created by querying the ontologies stored in the EBI Ontology Lookup
-Service.
-
-Namespace
-~~~~~~~~~
-In order to convert UBERON to a namespace, the keyword inside the OLS, ``uberon`` is used as well as specifying the
-encoding type and the applicability domain. The ``-o`` option can be used to specify which file to write the output
-to.
-
-.. code-block:: bash
-
-    $ pybel-tools namespace from_ols uberon --domain Other --encoding A
-
-Alternatively, the '-b' option can be used to specify an alternate OLS instance
-
-.. code-block:: bash
-
-    $ pybel-tools namespace from_ols uberon --domain Other --encoding A -b https://localhost/ols
-"""
+"""Command line interface for PyBEL-OLS."""
 
 import sys
 
@@ -52,7 +30,7 @@ def namespace_from_ols(ontology, domain, encoding, ols_base_url, output):
 
 @main.command()
 @click.argument('ontology')
-@click.option('-b', '--ols-base-url', default=BASE_URL, help='Default: {}'.format(BASE_URL))
+@click.option('-b', '--ols-base-url', default=BASE_URL, help=f'Default: {BASE_URL}')
 @click.option('-o', '--output', type=click.File('w'), default=sys.stdout,
               help='The file to output to. Defaults to standard out.')
 def annotation_from_ols(ontology, ols_base_url, output):

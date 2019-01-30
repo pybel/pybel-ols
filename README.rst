@@ -34,6 +34,12 @@ The main goal is to generate a namespace file. For example, to generate a namesp
 
 Where ``--encoding "O"`` tells it that all terms in this ontology correspond to the pathology/phenotype BEL type.
 
+Alternatively, the '-b' option can be used to specify an alternate OLS instance
+
+.. code-block:: bash
+
+    $ pybel-ols namespace_from_ols hp --encoding O --output ~/Desktop/hp.belns -b https://localhost/ols
+
 References
 ----------
 .. [1] Hoyt, C. T., *et al.* (2017). `PyBEL: a Computational Framework for Biological Expression Language
