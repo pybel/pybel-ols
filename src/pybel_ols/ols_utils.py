@@ -4,14 +4,15 @@
 
 import os
 from collections import defaultdict
+from typing import Iterable, List, Optional, TextIO, Tuple, Type
 
+from bel_resources import write_annotation, write_namespace
 from ols_client import BASE_URL, OlsClient
-
-from pybel.constants import CITATION_TYPE_URL, IS_A, NAMESPACE_DOMAIN_TYPES, belns_encodings, rev_abundance_labels
-from pybel.resources.definitions import write_annotation, write_namespace
-from pybel.resources.document import make_knowledge_header
-from pybel.utils import ensure_quotes
 from pybel_artifactory import get_namespace_latest
+
+from pybel import BELGraph
+from pybel.constants import NAMESPACE_DOMAIN_TYPES, belns_encodings, rev_abundance_labels
+from pybel.dsl import BaseEntity
 
 __all__ = [
     'OlsOntology',
@@ -32,14 +33,13 @@ for enc, functions in belns_encodings.items():
 class OlsOntology(object):
     """Wraps the functions needed to use the OLS to generate and deploy BEL namespaces."""
 
-    def __init__(self, ontology, *, ols_base=None, auth=None):
+    def __init__(self, ontology: str, *, ols_base: Optional[str] = None, auth: Optional[Tuple[str, str]] = None):
         """Build a wrapper around an OLS ontology.
 
-        :param str ontology: The name of the ontology. Ex: ``uberon``, ``go``, etc.
-        :param Optional[str] ols_base: An optional, custom OLS base url
+        :param ontology: The name of the ontology. Ex: ``uberon``, ``go``, etc.
+        :param ols_base: An optional, custom OLS base url
         :param auth: A pair of (str username, str password) to give to the auth keyword of the constructor of
-                     :class:`artifactory.ArtifactoryPath`. Looks up from environment by default.
-        :type auth:  Optional[tuple[str,str]]
+         :class:`artifactory.ArtifactoryPath`. Looks up from environment by default.
         """
         self.ontology = ontology
         self.ols_client = OlsClient(ols_base=ols_base)
@@ -54,57 +54,36 @@ class OlsOntology(object):
         self.metadata = self.ols_client.get_ontology(self.ontology)
 
     @property
-    def title(self):
-        """Return the ontology's full name.
-
-        :rtype: str
-        """
+    def title(self) -> str:
+        """Return the ontology's full name."""
         return self.metadata['config']['title']
 
     @property
-    def preferred_prefix(self):
-        """Return the ontology's preferred prefix, usually uppercase.
-
-        :rtype: str
-        """
+    def preferred_prefix(self) -> str:
+        """Return the ontology's preferred prefix, usually uppercase."""
         return self.metadata['config']['preferredPrefix']
 
     @property
-    def description(self):
-        """Return a description of the ontology.
-
-        :rtype: str
-        """
+    def description(self) -> str:
+        """Return a description of the ontology."""
         return self.metadata['config']['description']
 
     @property
-    def version(self):
-        """Return the version of the ontology.
-
-        :rtype: str
-        """
+    def version(self) -> str:
+        """Return the version of the ontology."""
         return self.metadata['config']['version']
 
     @property
-    def version_iri(self):
-        """Return the IRI of this version of the ontology.
-
-        :rtype: str
-        """
+    def version_iri(self) -> str:
+        """Return the IRI of this version of the ontology."""
         return self.metadata['config']['versionIri']
 
-    def _get_values(self):
-        """Iterate over the labels for this ontology.
-
-        :rtype: iter[str]
-        """
+    def _get_values(self) -> Iterable[str]:
+        """Iterate over the labels for this ontology."""
         return self.ols_client.iter_labels(self.ontology)
 
-    def _get_hierarchy(self):
-        """Iterate over the hierarchy for this ontology.
-
-        :rtype: iter[tuple[str,str]]
-        """
+    def _get_hierarchy(self) -> Iterable[Tuple[str, str]]:
+        """Iterate over the hierarchy for this ontology."""
         return self.ols_client.iter_hierarchy(self.ontology)
 
 
@@ -139,29 +118,20 @@ class OlsNamespaceOntology(OlsOntology):
         self._encoding = encoding
 
     @property
-    def bel_function(self):
-        """Return the BEL function for this ontology.
-
-        :rtype: str
-        """
+    def bel_function(self) -> str:
+        """Return the BEL function for this ontology."""
         return rev_abundance_labels[self._bel_function]
 
     @property
-    def encodings(self):
-        """Return the encodings that should be used when outputting this ontology as a BEL namespace.
-
-        :rtype: list[str]
-        """
+    def encodings(self) -> List[str]:
+        """Return the encodings that should be used when outputting this ontology as a BEL namespace."""
         if self._encoding:
             return self._encoding
 
         return function_to_encoding[self._bel_function]
 
-    def write_namespace(self, file=None):
-        """Write this ontology as a BEL namespace.
-
-        :param file file: A write-enable file or file-like
-        """
+    def write_namespace(self, file: Optional[TextIO] = None):
+        """Write this ontology as a BEL namespace."""
         values = self._get_values()
 
         write_namespace(
@@ -180,55 +150,39 @@ class OlsNamespaceOntology(OlsOntology):
             file=file
         )
 
-    def _write_hierarchy_header(self, file=None):
-        lines = make_knowledge_header(
+    def _get_dsl_func(self) -> Type[BaseEntity]:
+        """Get the PyBEL DSL type."""
+        raise NotImplementedError
+
+    def _get_node(self, name: Optional[str] = None, identifier: Optional[str] = None) -> BaseEntity:
+        return self._get_dsl_func()(self.preferred_prefix, name=name, identifier=identifier)
+
+    def _get_hierarchy_graph(self) -> BELGraph:
+        graph = BELGraph(
             name=self.title,
             description=self.description,
             authors='Charles Tapley Hoyt',
             contact='charles.hoyt@scai.fraunhofer.de',
             version=self.version,
-            namespace_url={self.preferred_prefix: get_namespace_latest(self.ontology)},
-            annotation_url={},
-            annotation_patterns={},
-            namespace_patterns={},
         )
-
-        for line in lines:
-            print(line, file=file)
-
-    def _write_hierarchy_body(self, file=None):
-        print('SET Citation = {{"{}","{}"}}'.format(CITATION_TYPE_URL, self.version_iri), file=file)
-        print('SET Evidence = "Automatically generated hierarchy from {}"\n'.format(self.version_iri), file=file)
+        graph.namespace_url[self.preferred_prefix] = get_namespace_latest(self.ontology)
 
         for parent, child in self._get_hierarchy():
-            print(
-                '{fn}({keyword}:{child}) {relation} {fn}({keyword}:{parent})'.format(
-                    fn=self.bel_function,
-                    keyword=self.preferred_prefix,
-                    relation=IS_A,
-                    parent=ensure_quotes(parent),
-                    child=ensure_quotes(child)
-                ),
-                file=file
-            )
+            graph.add_is_a(self._get_node(name=child), self._get_node(name=parent))
 
-    def write_namespace_hierarchy(self, file=None):
-        """Serialize the hierarchy in this ontology as BEL.
+        return graph
 
-        :param file file: A write-enable file or file-like
-        """
-        self._write_hierarchy_header(file=file)
-        self._write_hierarchy_body(file=file)
+    def write_namespace_hierarchy(self, file: Optional[TextIO] = None):
+        """Serialize the hierarchy in this ontology as BEL."""
+        graph = self._get_hierarchy_graph()
+        graph.serialize('bel', file=file)
 
 
 class OlsAnnotationOntology(OlsOntology):
     """Wraps the functions needed to use the OLS to generate and deploy BEL annotations."""
 
-    def write_annotation(self, file=None):
-        """Serialize this ontology as a BEL annotation.
-
-        :param file file: A write-enable file or file-like
-        """
+    def write_annotation(self, file: Optional[TextIO] = None) -> None:
+        """Serialize this ontology as a BEL annotation."""
         write_annotation(
             keyword=self.preferred_prefix,
             values={x: '' for x in self._get_values()},
@@ -245,8 +199,8 @@ class OlsAnnotationOntology(OlsOntology):
 class OlsConstrainedOntology(OlsOntology):
     """Specifies that only the hierarchy under a certain term should be followed."""
 
-    def __init__(self, ontology, base_term_iri, *, ols_base=None,
-                 auth=None):
+    def __init__(self, ontology: str, base_term_iri: str, *, ols_base: Optional[str] = None,
+                 auth: Optional[Tuple[str, str]] = None):
         """Build a wrapper around an ontology that is constrained to descendants of a specific term.
 
         :param str ontology: The name of the ontology. Ex: ``uberon``, ``go``, etc.

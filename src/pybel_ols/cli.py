@@ -22,8 +22,6 @@ Alternatively, the '-b' option can be used to specify an alternate OLS instance
 .. code-block:: bash
 
     $ pybel-tools namespace from_ols uberon --domain Other --encoding A -b https://localhost/ols
-
-
 """
 
 import sys

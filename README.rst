@@ -3,6 +3,17 @@ PyBEL-OLS |build| |coverage| |documentation|
 A PyBEL [1]_ extension for building BEL resources with the EBI [2]_ Ontology
 Lookup Service.
 
+Getting Started
+---------------
+The main goal is to generate a namespace file. For example, to generate a namespace for the `Human Phenotype Ontology
+<https://www.ebi.ac.uk/ols/ontologies/hp>`_, abbreviated with the prefix ``hp``, the following command can be used:
+
+.. code-block:: sh
+
+   $ pybel_ols namespace_from_ols hpo --encoding "O" --output ~/Desktop/hp.belns
+
+Where ``--encoding "O"`` tells it that all terms in this ontology correspond to the pathology/phenotype BEL type.
+
 Installation |pypi_version| |python_versions| |pypi_license|
 ------------------------------------------------------------
 Get the Latest
@@ -11,7 +22,7 @@ Download the most recent code from `GitHub <https://github.com/pybel/pybel-ols>`
 
 .. code-block:: sh
 
-   $ python3 -m pip install git+https://github.com/pybel/pybel-ols.git
+   $ pip install git+https://github.com/pybel/pybel-ols.git
 
 For Developers
 ~~~~~~~~~~~~~~
@@ -20,8 +31,8 @@ Clone the repository from `GitHub <https://github.com/pybel/pybel-ols>`_ and ins
 .. code-block:: sh
 
    $ git clone https://github.com/pybel/pybel-ols.git
-   $ cd bio2bel
-   $ python3 -m pip install -e .
+   $ cd pybel-ols
+   $ pip install -e .
 
 References
 ----------
@@ -42,10 +53,6 @@ References
 .. |documentation| image:: https://readthedocs.org/projects/pybel-ols/badge/?version=latest
     :target: https://pybel.readthedocs.io/projects/ols/en/latest/?badge=latest
     :alt: Documentation Status
-
-.. |climate| image:: https://codeclimate.com/github/pybel/pybel-ols/badges/gpa.svg
-    :target: https://codeclimate.com/github/pybel/pybel-ols
-    :alt: Code Climate
 
 .. |python_versions| image:: https://img.shields.io/pypi/pyversions/pybel-ols.svg
     :alt: Stable Supported Python Versions
