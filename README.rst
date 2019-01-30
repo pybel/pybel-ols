@@ -3,17 +3,6 @@ PyBEL-OLS |build| |coverage| |documentation|
 A PyBEL [1]_ extension for building BEL resources with the EBI [2]_ Ontology
 Lookup Service.
 
-Getting Started
----------------
-The main goal is to generate a namespace file. For example, to generate a namespace for the `Human Phenotype Ontology
-<https://www.ebi.ac.uk/ols/ontologies/hp>`_, abbreviated with the prefix ``hp``, the following command can be used:
-
-.. code-block:: sh
-
-   $ pybel_ols namespace_from_ols hpo --encoding "O" --output ~/Desktop/hp.belns
-
-Where ``--encoding "O"`` tells it that all terms in this ontology correspond to the pathology/phenotype BEL type.
-
 Installation |pypi_version| |python_versions| |pypi_license|
 ------------------------------------------------------------
 Get the Latest
@@ -33,6 +22,17 @@ Clone the repository from `GitHub <https://github.com/pybel/pybel-ols>`_ and ins
    $ git clone https://github.com/pybel/pybel-ols.git
    $ cd pybel-ols
    $ pip install -e .
+
+Getting Started
+---------------
+The main goal is to generate a namespace file. For example, to generate a namespace for the `Human Phenotype Ontology
+<https://www.ebi.ac.uk/ols/ontologies/hp>`_, abbreviated with the prefix ``hp``, the following command can be used:
+
+.. code-block:: sh
+
+   $ pybel-ols namespace_from_ols hp --encoding "O" --output ~/Desktop/hp.belns
+
+Where ``--encoding "O"`` tells it that all terms in this ontology correspond to the pathology/phenotype BEL type.
 
 References
 ----------

@@ -2,13 +2,14 @@
 
 """PyBEL-OLS Reference."""
 
+import json
 import os
 from collections import defaultdict
+from itertools import repeat
 from typing import Iterable, List, Optional, TextIO, Tuple, Type
 
 from bel_resources import write_annotation, write_namespace
 from ols_client import BASE_URL, OlsClient
-from pybel_artifactory import get_namespace_latest
 
 from pybel import BELGraph
 from pybel.constants import NAMESPACE_DOMAIN_TYPES, belns_encodings, rev_abundance_labels
@@ -52,6 +53,9 @@ class OlsOntology(object):
             self.auth = None
 
         self.metadata = self.ols_client.get_ontology(self.ontology)
+
+        if self.metadata['status'] == 404:
+            raise ValueError('Error from OLS:\n{}'.format(json.dumps(self.metadata, indent=2)))
 
     @property
     def title(self) -> str:
@@ -132,8 +136,6 @@ class OlsNamespaceOntology(OlsOntology):
 
     def write_namespace(self, file: Optional[TextIO] = None):
         """Write this ontology as a BEL namespace."""
-        values = self._get_values()
-
         write_namespace(
             namespace_name=self.title,
             namespace_keyword=self.preferred_prefix,
@@ -145,8 +147,7 @@ class OlsNamespaceOntology(OlsOntology):
             author_name='Charles Tapley Hoyt',
             author_contact='charles.hoyt@scai.fraunhofer.de',
             author_copyright='Creative Commons by 4.0',
-            values=values,
-            functions=self.encodings,
+            values=zip(self._get_values(), repeat(''.join(self.encodings))),
             file=file
         )
 
@@ -158,6 +159,8 @@ class OlsNamespaceOntology(OlsOntology):
         return self._get_dsl_func()(self.preferred_prefix, name=name, identifier=identifier)
 
     def _get_hierarchy_graph(self) -> BELGraph:
+        from pybel_artifactory import get_namespace_latest
+
         graph = BELGraph(
             name=self.title,
             description=self.description,
@@ -165,6 +168,8 @@ class OlsNamespaceOntology(OlsOntology):
             contact='charles.hoyt@scai.fraunhofer.de',
             version=self.version,
         )
+
+        # TODO need better way
         graph.namespace_url[self.preferred_prefix] = get_namespace_latest(self.ontology)
 
         for parent, child in self._get_hierarchy():
